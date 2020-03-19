@@ -63,6 +63,7 @@ import json
 import re
 import traceback
 import uuid
+import os
 
 from ansible.errors import AnsibleLookupError
 from ansible.module_utils._text import to_bytes, to_native, to_text
@@ -83,11 +84,14 @@ except ImportError:
 CATALOG_URL = 'https://www.catalog.update.microsoft.com/'
 DOWNLOAD_PATTERN = re.compile(r'\[(\d*)\]\.url = [\"\'](http[s]?://w{0,3}.?download\.windowsupdate\.com/[^\'\"]*)')
 PRODUCT_SPLIT_PATTERN = re.compile(r',(?=[^\s])')
+WINDOWS_UPDATE_TIMEOUT = 120
 
+if os.getenv('WINDOWS_UPDATE_TIMEOUT') is not None:
+    WINDOWS_UPDATE_TIMEOUT = os.environ['WINDOWS_UPDATE_TIMEOUT']
 
 @contextlib.contextmanager
 def urlopen(*args, **kwargs):
-    resp = open_url(*args, http_agent='packer-windoze/%s' % __name__, **kwargs)
+    resp = open_url(*args, http_agent='packer-windoze/%s' % __name__, timeout=WINDOWS_UPDATE_TIMEOUT, **kwargs)
     try:
         yield resp
     finally:
